@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "google-scholar-scraper"
+version = "0.1.0"
+description = ""
+authors = ["Fabian Schomerus <97347781+fabayoun@users.noreply.github.com>"]
+readme = "README.md"
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.12"
+requests = "^2.31.0"
+scholarly = "^1.7.11"
+pandas = "^2.2.2"
+datetime = "^5.5"
+
+
+[tool.poetry.group.dev.dependencies]
+structlog = "^24.1.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
