@@ -1,3 +1,0 @@
-# Conf/key.py
-
-SEMANTIC_SCHOLAR_API_KEY = '8Rn9fXkYe93hzKdZ1kA2z1XZJhxVF2nQ1EqtGjCY'
