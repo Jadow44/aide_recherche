@@ -2,14 +2,29 @@ import os
 import pickle
 from pathlib import Path
 
+from activity_logger import log_event
+from storage_helper import resolve_storage_paths
+
 
 class Gerenciador:
     def __init__(self, palavraChave, root_directory):
         self.root_directory = root_directory
+        (
+            self.storage_label,
+            self.storage_dir,
+            authors_path,
+            articles_path,
+        ) = resolve_storage_paths(self.root_directory, palavraChave)
         self.diretorio_files = os.path.join(self.root_directory, 'Results')
-        self.arquivo_autores = ''
-        self.arquivo_artigos = ''
-        self.inicializaPrograma(palavraChave)
+        self.arquivo_autores = str(authors_path)
+        self.arquivo_artigos = str(articles_path)
+        self.inicializaPrograma()
+        log_event(
+            "STORAGE_READY",
+            "Gestionnaire de stockage initialisé",
+            search_label=self.storage_label,
+            path=str(self.storage_dir),
+        )
 
     def loadAutores(self):
         with open(self.arquivo_autores, 'rb') as file_input:
@@ -41,15 +56,9 @@ class Gerenciador:
         with open(self.arquivo_artigos, 'wb') as file_output:
             pickle.dump(lista_artigos, file_output, -1)
 
-    def inicializaPrograma(self, palavraChave):
-        if not os.path.exists(self.diretorio_files):
-            os.mkdir('Results')
-        diretorio_com_palavra_chave = os.path.join(self.diretorio_files, palavraChave)
-        if not os.path.exists(diretorio_com_palavra_chave):
-            os.chdir(self.diretorio_files)
-            os.mkdir(palavraChave)
-        self.arquivo_autores = os.path.join(diretorio_com_palavra_chave, 'Authors.pkl')
-        self.arquivo_artigos = os.path.join(diretorio_com_palavra_chave, 'Articles.pkl')
+    def inicializaPrograma(self):
+        os.makedirs(self.diretorio_files, exist_ok=True)
+        os.makedirs(self.storage_dir, exist_ok=True)
         caminho_autores = Path(self.arquivo_autores)
         caminho_artigos = Path(self.arquivo_artigos)
         if not caminho_artigos.is_file():

@@ -11,12 +11,7 @@ class Merger:
         directory_files = os.path.join(current_directory, 'Results', 'Merged Search')
 
         # check if the Files folder exists and creates it if not
-        if not os.path.exists(directory_files):
-            os.chdir(os.path.join(current_directory, 'Results'))
-            os.mkdir('Merged Search')
-
-        # return to root folder
-        os.chdir(current_directory)
+        os.makedirs(directory_files, exist_ok=True)
 
         # merge all files into one
         self.articles_list = []

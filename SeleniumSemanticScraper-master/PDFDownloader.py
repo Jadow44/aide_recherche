@@ -1,7 +1,11 @@
-import os
+from contextlib import closing
+from pathlib import Path
+
 import requests
+
 from Gerenciador import Gerenciador
 import Timer
+from NetworkHelper import configure_session_for_tor
 
 
 class PDFDownloader:
@@ -13,15 +17,14 @@ class PDFDownloader:
         self.gui = gui
         self.downloaded_files_quant = 0
 
+        self._session = requests.Session()
+        using_tor, _ = configure_session_for_tor(self._session)
+        if using_tor:
+            print("Utilisation du proxy Tor pour les téléchargements de PDF.")
+
         # saves pdf download directory
-        self.pdf_directory = os.path.join(self.root_directory, 'Results', self.search, 'PDFs')
-
-        os.chdir(os.path.join(self.root_directory, 'Results', self.search))
-
-        if not os.path.exists(self.pdf_directory):
-            os.mkdir('PDFs')
-
-        os.chdir(self.root_directory)
+        self.pdf_directory = Path(self.manager.storage_dir) / 'PDFs'
+        self.pdf_directory.mkdir(parents=True, exist_ok=True)
 
     def download_file(self, url, name):
         local_filename = name + '.pdf'
@@ -32,9 +35,9 @@ class PDFDownloader:
         headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36'}
 
         # NOTE the stream=True parameter below
-        with requests.get(url, stream=False, headers=headers) as r:
+        with closing(self._session.get(url, stream=True, headers=headers, timeout=60)) as r:
             r.raise_for_status()
-            with open(os.path.join(self.pdf_directory, local_filename), 'wb') as f:
+            with open(self.pdf_directory / local_filename, 'wb') as f:
                 for chunk in r.iter_content(chunk_size=8192):
                     if chunk:  # filter out keep-alive new chunks
                         f.write(chunk)
@@ -58,7 +61,7 @@ class PDFDownloader:
         self.gui.show_download_done_alert(Timer.totalTime(start_time, end_time), str(self.downloaded_files_quant))
 
     def start(self):
-        self.gui.app.queueFunction(self.gui.app.setLabel, 'progress_bar_2_label', 'Downloading available .pdf files')
+        self.gui.app.queueFunction(self.gui.app.setLabel, 'progress_bar_2_label', 'Téléchargement des fichiers PDF disponibles')
         self.gui.app.queueFunction(self.gui.app.setMeter, 'progress_bar2', 0)
 
         self.iterate_articles()
